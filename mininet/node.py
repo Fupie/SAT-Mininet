@@ -828,6 +828,13 @@ class CPULimitedHost( Host ):
         cls.inited = True
 
 
+class SatNode( Node ):
+    """A SatNode is a Node moving according to orbit """
+
+    def __init__(self, name, **satParams, **params):
+        """ what else does a satllite have?"""
+        Node.__init__( self, name, **params )
+
 # Some important things to note:
 #
 # The "IP" address which setIP() assigns to the switch is not
@@ -921,6 +928,78 @@ class Switch( Node ):
         return '<%s %s: %s pid=%s> ' % (
             self.__class__.__name__, self.name, intfs, self.pid )
 
+class SatSwitch( SatNode ):
+    """A SatSwitch is a SatNode that is running (or has execed?)
+       an OpenFlow switch."""
+
+    portBase = 1  # Switches start with port 1 in OpenFlow
+    dpidLen = 16  # digits in dpid passed to switch
+
+    def __init__( self, name, dpid=None, opts='', listenPort=None, **satParams, **params):
+        """dpid: dpid hex string (or None to derive from name, e.g. s1 -> 1)
+           opts: additional switch options
+           listenPort: port to listen on for dpctl connections"""
+        SatNode.__init__( self, name, **params )
+        self.dpid = self.defaultDpid( dpid )
+        self.opts = opts
+        self.listenPort = listenPort
+        if not self.inNamespace:
+            self.controlIntf = Intf( 'lo', self, port=0 )
+
+    def defaultDpid( self, dpid=None ):
+        "Return correctly formatted dpid from dpid or switch name (s1 -> 1)"
+        if dpid:
+            # Remove any colons and make sure it's a good hex number
+            dpid = dpid.translate( None, ':' )
+            assert len( dpid ) <= self.dpidLen and int( dpid, 16 ) >= 0
+        else:
+            # Use hex of the first number in the switch name
+            nums = re.findall( r'\d+', self.name )
+            if nums:
+                dpid = hex( int( nums[ 0 ] ) )[ 2: ]
+            else:
+                raise Exception( 'Unable to derive default datapath ID - '
+                                 'please either specify a dpid or use a '
+                                 'canonical switch name such as s23.' )
+        return '0' * ( self.dpidLen - len( dpid ) ) + dpid
+
+    def defaultIntf( self ):
+        "Return control interface"
+        if self.controlIntf:
+            return self.controlIntf
+        else:
+            return Node.defaultIntf( self )
+
+    def sendCmd( self, *cmd, **kwargs ):
+        """Send command to Node.
+           cmd: string"""
+        kwargs.setdefault( 'printPid', False )
+        if not self.execed:
+            return Node.sendCmd( self, *cmd, **kwargs )
+        else:
+            error( '*** Error: %s has execed and cannot accept commands' %
+                   self.name )
+
+    def connected( self ):
+        "Is the switch connected to a controller? (override this method)"
+        # Assume that we are connected by default to whatever we need to
+        # be connected to. This should be overridden by any OpenFlow
+        # switch, but not by a standalone bridge.
+        debug( 'Assuming', repr( self ), 'is connected to a controller\n' )
+        return True
+
+    def stop( self, deleteIntfs=True ):
+        """Stop switch
+           deleteIntfs: delete interfaces? (True)"""
+        if deleteIntfs:
+            self.deleteIntfs()
+
+    def __repr__( self ):
+        "More informative string representation"
+        intfs = ( ','.join( [ '%s:%s' % ( i.name, i.IP() )
+                              for i in self.intfList() ] ) )
+        return '<%s %s: %s pid=%s> ' % (
+            self.__class__.__name__, self.name, intfs, self.pid )
 
 class UserSwitch( Switch ):
     "User-space switch."
