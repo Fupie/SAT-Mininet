@@ -827,14 +827,14 @@ class CPULimitedHost( Host ):
         mountCgroups()
         cls.inited = True
 
-
+'''
 class SatNode( Node ):
     """A SatNode is a Node moving according to orbit """
 
     def __init__(self, name, **satParams, **params):
         """ what else does a satllite have?"""
         Node.__init__( self, name, **params )
-
+'''
 # Some important things to note:
 #
 # The "IP" address which setIP() assigns to the switch is not
@@ -928,6 +928,7 @@ class Switch( Node ):
         return '<%s %s: %s pid=%s> ' % (
             self.__class__.__name__, self.name, intfs, self.pid )
 
+'''
 class SatSwitch( SatNode ):
     """A SatSwitch is a SatNode that is running (or has execed?)
        an OpenFlow switch."""
@@ -1000,6 +1001,7 @@ class SatSwitch( SatNode ):
                               for i in self.intfList() ] ) )
         return '<%s %s: %s pid=%s> ' % (
             self.__class__.__name__, self.name, intfs, self.pid )
+'''
 
 class UserSwitch( Switch ):
     "User-space switch."
@@ -1423,6 +1425,9 @@ class IVSSwitch( Switch ):
         return self.cmd( 'ovs-ofctl ' + ' '.join( args ) +
                          ' tcp:127.0.0.1:%i' % self.listenPort )
 
+'''
+class SatController( SatNode):
+''' 
 
 class Controller( Node ):
     """A Controller is a Node that is running (or has execed?) an
