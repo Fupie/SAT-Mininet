@@ -44,7 +44,7 @@ class Intf( object ):
         self.link = link
         self.mac = mac
         self.ip, self.prefixLen = None, None
-
+	self.dParent = None
         # if interface is lo, we know the ip is 127.0.0.1.
         # This saves an ifconfig command per node
         if self.name == 'lo':
@@ -301,13 +301,15 @@ class TCIntf( Intf ):
                 cmds = [ '%s qdisc add dev %s ' + parent +
                          ' handle 10: netem ' +
                          netemargs ]
+		delayparent = parent
                 parent = ' parent 10:1 '
-        return cmds, parent
+        return cmds, parent, delayparent
 
     def tc( self, cmd, tc='tc' ):
         "Execute tc command for our interface"
         c = cmd % (tc, self)  # Add in tc command and our name
         debug(" *** executing command: %s\n" % c)
+        info(" *** executing command: %s\n" % c)
         return self.cmd( c )
 
     def config( self, bw=None, delay=None, jitter=None, loss=None,
@@ -368,11 +370,16 @@ class TCIntf( Intf ):
         cmds += bwcmds
 
         # Delay/jitter/loss/max_queue_size using netem
-        delaycmds, parent = self.delayCmds( delay=delay, jitter=jitter,
+        delaycmds, parent, delayparent = self.delayCmds( delay=delay, jitter=jitter,
                                             loss=loss,
                                             max_queue_size=max_queue_size,
                                             parent=parent )
+	#info("aaaaaaaaaaaaaa: %s\n" %delayparent)
+	self.dParent = delayparent
         cmds += delaycmds
+        delaycmds2 = [ '%s qdisc replace dev %s ' + delayparent
+                         + ' handle 10: netem delay 20ms']
+	cmds += delaycmds2
 
         # Ugly but functional: display configuration info
         stuff = ( ( [ '%.2fMbit' % bw ] if bw is not None else [] ) +

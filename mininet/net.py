@@ -349,6 +349,10 @@ class Mininet( object ):
             params: additional link params (optional)
             returns: link object"""
         # Accept node objects or names
+	info("nodeinfo:  %s %s\n" % (node1,node2))
+	#print(type(node1))
+	print(self[node1])
+	print(type(self[node1]))
         node1 = node1 if not isinstance( node1, basestring ) else self[ node1 ]
         node2 = node2 if not isinstance( node2, basestring ) else self[ node2 ]
         options = dict( params )
@@ -428,6 +432,7 @@ class Mininet( object ):
         info( '\n*** Adding links:\n' )
         for srcName, dstName, params in topo.links(
                 sort=True, withInfo=True ):
+	    #info("paramsssssssssssissssssss          %s\n",params)
             self.addLink( **params )
             info( '(%s, %s) ' % ( srcName, dstName ) )
 
