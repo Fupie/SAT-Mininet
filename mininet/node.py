@@ -68,11 +68,15 @@ from mininet.link import Link, Intf, TCIntf, OVSIntf
 from re import findall
 from distutils.version import StrictVersion
 
+from mininet.satpos import *
+
 class Node( object ):
     """A virtual network node is simply a shell in a network namespace.
        We communicate with it using pipes."""
 
     portBase = 0  # Nodes always start with eth0/port0, even in OF 1.0
+    
+    nodeType = "t-node"
 
     def __init__( self, name, inNamespace=True, **params ):
         """name: name of node
@@ -108,6 +112,18 @@ class Node( object ):
 
     # File descriptor to node mapping support
     # Class variables and methods
+    
+    def setNode(self, **params):
+        self.nodeType = params['nodeType']
+        if self.nodeType=='polar':
+            self.pos = PolarPos(params['alt'], params['lon'], params['alpha'], params['incl'])
+        elif self.nodeType == 't-node':
+            self.pos = TPos(params['lat'], params['lon'])
+        else:
+            pass
+
+    def isSat(self):
+        return not (self.nodeType == 't-node')
 
     inToNode = {}  # mapping of input fds to nodes
     outToNode = {}  # mapping of output fds to nodes

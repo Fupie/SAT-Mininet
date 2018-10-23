@@ -91,6 +91,7 @@ import re
 import select
 import signal
 import random
+import threading
 
 from time import sleep
 from itertools import chain, groupby
@@ -170,6 +171,8 @@ class Mininet( object ):
         self.built = False
         if topo and build:
             self.build()
+        
+        self.time_counter = 0
 
     def waitConnected( self, timeout=None, delay=.5 ):
         """wait for each switch to connect to a controller,
@@ -481,6 +484,25 @@ class Mininet( object ):
                 if src != dst:
                     src.setARP( ip=dst.IP(), mac=dst.MAC() )
 
+    def updateSatLink( self ):
+        for switch in self.switches:
+            if switch.isSat():
+                switch.pos.update( self.time_counter )
+        for controller in self.controllers:
+            if controller.isSat():
+                controller.pos.update( self.time_counter )
+        for host in self.hosts:
+            if host.isSat():
+                host.pos.update( self.time_counter )
+        for link in self.links:
+            pass
+            '''
+            link.update()'''
+        
+        self.time_counter+=1
+        self.timer = threading.Timer(1, self.updateSatLink)
+        self.timer.start()
+
     def start( self ):
         "Start controller and switches."
         if not self.built:
@@ -502,6 +524,8 @@ class Mininet( object ):
                 success = swclass.batchStartup( switches )
                 started.update( { s: s for s in success } )
         info( '\n' )
+        self.timer = threading.Timer(1, self.updateSatLink)
+        self.timer.start()
         if self.waitConn:
             self.waitConnected()
 
@@ -538,6 +562,7 @@ class Mininet( object ):
         for host in self.hosts:
             info( host.name + ' ' )
             host.terminate()
+        self.timer.cancel()
         info( '\n*** Done\n' )
 
     def run( self, test, *args, **kwargs ):

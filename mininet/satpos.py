@@ -25,18 +25,12 @@ def distance( coord1, coord2 ):
     return math.sqrt( (cart1['x']-cart2['x'])**2 + (cart1['y']-cart2['y'])**2 + (cart1['z']-cart2['z'])**2)
 
 
-
-
-class SatPos( object ):
+class Pos( object ):
     _mu = 398601.2
     _earthPeroid = 86164
     _earthRadius = 6378
     _atmosMargin = 150
-    
-    def __init__( self, coord ):
-        self.coord = copy.deepcopy( coord )
-        self._initCoord = copy.deepcopy( coord )
-    
+
     def get_altitude( coord ):
         return coord.r - _earthRadius
 
@@ -56,12 +50,52 @@ class SatPos( object ):
             return True
         return False
 
+class TPos( Pos ):
+    def __init__(self, lat, lon):
+        r = Pos._earthRadius
+        assert lat >=-90 and lat <= 90
+        theta = deg_to_rad(90 - lat)
 
-class PolarPos( SatPos ):
-    def __init__( self, coord, **params ):
-        SatPos.__init__( self, coord )
+        assert lon >=-180 and lon <= 180
+        if lon < 0:
+            phi = deg_to_rad( 360 + lon )
+        else:
+            phi = deg_to_rad(lon)
+        self._coord = coordinate(r, theta, phi)
+        
+
+class PolarPos( Pos ):
+    _time_advance = 0
+    def __init__( self, alt, lon, alpha, incl):
+        assert alt > 0
+        r = alt + Pos._earthRadius
+        
+        assert alpha >=0 and alpha <= 360
+        theta = deg_to_rad(alpha)
+
+        assert lon >=-180 and lon <= 180
+        if lon < 0:
+            phi = deg_to_rad( 360 + lon )
+        else:
+            phi = deg_to_rad(lon)
+
+        assert incl >= 0 and incl <= 180
+        self._inclination = deg_to_rad(incl)
+        self._period = 2 * math.pi * math.sqrt(r**3/Pos._mu)
+        self._initial = coordinate(r,theta,phi)
+        self._coord = copy.deepcopy(self._initial)
 
     def update( t ):
+        partial = (math.fmod( t + self._time_advance, self._period )/self._period)*2*math.pi
+        theta_cur = math.fmod( self._initial.theta + partial, 2*math.pi)
+        phi_cur = self._intial.phi
+        assert _inclination<math.pi
+        theta_new = math.pi/2 - math.asin( math.sin(self._inclination) * math.sin(theta_cur))
+        if theta_cur > math.pi/2 and theta_cur < 3*math.pi/2:
+            phi_new = math.atan( math.cos(_inclination) * math.tan(theta_cur)) + phi_cur + math.pi
+        else:
+            phi_new = math.atan( math.cos(_inclination) * math.tan(theta_cur)) + phi_cur
 
-
-    
+        phi_new = math.fmod(phi_new + 2*math.pi, 2*math.pi)
+        self._coord.theta = theta_new
+        self._coord.phi = phi_new
