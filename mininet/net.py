@@ -485,7 +485,8 @@ class Mininet( object ):
                     src.setARP( ip=dst.IP(), mac=dst.MAC() )
 
     def updateSatLink( self ):
-        for switch in self.switches:
+        '''
+	for switch in self.switches:
             if switch.isSat():
                 switch.pos.update( self.time_counter )
         for controller in self.controllers:
@@ -494,7 +495,8 @@ class Mininet( object ):
         for host in self.hosts:
             if host.isSat():
                 host.pos.update( self.time_counter )
-        for link in self.links:
+        '''
+	for link in self.links:
             link.update()
         
         self.time_counter+=1

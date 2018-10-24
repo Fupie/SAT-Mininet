@@ -529,6 +529,7 @@ class Link( object ):
     def update( self ):
 	cmds1 = []
 	cmds2 = []
+	'''
 	if(Pos.is_visible(self.node1.pos._coord,self.node2.pos._coord)):
 	   delay = distance(self.node1.pos._coord,self.node2.pos._coord)/300
 	   cmds1 += ['%s qdisc replace dev %s ' + self.intf1.dParent +
@@ -546,8 +547,24 @@ class Link( object ):
               if output2 != '':
                   error( "*** Error: %s" % output2 )
 	else:
-	   info("deleting")
+	   info("")
 	   self.delete();
+	'''
+	delay = 30
+	cmds1 += ['%s qdisc replace dev %s ' + self.intf1.dParent +
+                         ' handle 10: netem delay ' + str(delay)
+                         + 'ms']
+        tcoutputs1 = [self.intf1.tc(cmd) for cmd in cmds1]
+	for output1 in tcoutputs1:
+           if output1 != '':
+               error( "*** Error: %s" % output1)
+   	cmds2 += ['%s qdisc replace dev %s ' + self.intf2.dParent +
+                         ' handle 10: netem delay ' + str(delay)
+                         + 'ms']
+        tcoutputs2 = [self.intf2.tc(cmd) for cmd in cmds2]
+	for output2 in tcoutputs2:
+           if output2 != '':
+               error( "*** Error: %s" % output2 )
 
 class OVSIntf( Intf ):
     "Patch interface on an OVSSwitch"

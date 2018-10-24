@@ -245,13 +245,6 @@ def dumpNodeConnections( nodes ):
             output( ' %s:' % intf )
             if intf.link:
                 intfs = [ intf.link.intf1, intf.link.intf2 ]
-		print("hahahahahaha1")
-		print(type(intf))
-		print(type(intf.link.intf1))
-		print("hahahahahaha2")
-		print(intf.link.intf1.dParent)
-		print("hahahahahaha3")
-		#info("ddddddddd: %s %s" %(intf.link.intf1.dParent,intf.link.intf2.dParent))
                 intfs.remove( intf )
                 output( intfs[ 0 ] )
             else:

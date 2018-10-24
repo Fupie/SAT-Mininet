@@ -31,7 +31,7 @@ class SingleSwitchTopo(Topo):
             if lossy:
                 # 10 Mbps, 5ms delay, 10% packet loss
                 self.addLink(host, switch,
-                             bw = 10, delay='5ms', loss=10, use_htb=True)
+                             bw=10, delay='5ms', loss=10, use_htb=True)
             else:
                 # 10 Mbps, 5ms delay, no packet loss
                 self.addLink(host, switch,
@@ -47,10 +47,10 @@ def perfTest( lossy=True ):
     net.start()
     print "Dumping host connections"
     dumpNodeConnections(net.hosts)
-    print "Testing bandwidth between h1 and h4"
+    #print "Testing bandwidth between h1 and h4"
     #h1, h2 = net.getNodeByName('h1', 'h4')
     CLI(net)
-	#net.iperf( ( h1, h4 ), l4Type='UDP' )
+    #net.iperf( ( h1, h4 ), l4Type='UDP' )
     net.stop()
 
 if __name__ == '__main__':
