@@ -77,6 +77,7 @@ class Node( object ):
     portBase = 0  # Nodes always start with eth0/port0, even in OF 1.0
     
     nodeType = "t-node"
+    pos = TPos(**{'lat':0,'lon':0})
 
     def __init__( self, name, inNamespace=True, **params ):
         """name: name of node
