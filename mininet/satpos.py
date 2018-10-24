@@ -85,17 +85,18 @@ class PolarPos( Pos ):
         self._initial = coordinate(r,theta,phi)
         self._coord = copy.deepcopy(self._initial)
 
-    def update( t ):
+    def update( self, t ):
         partial = (math.fmod( t + self._time_advance, self._period )/self._period)*2*math.pi
         theta_cur = math.fmod( self._initial.theta + partial, 2*math.pi)
-        phi_cur = self._intial.phi
-        assert _inclination<math.pi
+        phi_cur = self._initial.phi
+        assert self._inclination<math.pi
         theta_new = math.pi/2 - math.asin( math.sin(self._inclination) * math.sin(theta_cur))
         if theta_cur > math.pi/2 and theta_cur < 3*math.pi/2:
-            phi_new = math.atan( math.cos(_inclination) * math.tan(theta_cur)) + phi_cur + math.pi
+            phi_new = math.atan( math.cos(self._inclination) * math.tan(theta_cur)) + phi_cur + math.pi
         else:
-            phi_new = math.atan( math.cos(_inclination) * math.tan(theta_cur)) + phi_cur
+            phi_new = math.atan( math.cos(self._inclination) * math.tan(theta_cur)) + phi_cur
 
         phi_new = math.fmod(phi_new + 2*math.pi, 2*math.pi)
         self._coord.theta = theta_new
         self._coord.phi = phi_new
+        '''print self._coord.r, self._coord.theta, self._coord.phi'''
