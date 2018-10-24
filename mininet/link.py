@@ -28,6 +28,7 @@ from mininet.log import info, error, debug
 from mininet.util import makeIntfPair
 import mininet.node
 import re
+from mininet.satpos import *
 
 class Intf( object ):
 
@@ -44,7 +45,7 @@ class Intf( object ):
         self.link = link
         self.mac = mac
         self.ip, self.prefixLen = None, None
-	self.dParent = None
+	self.dParent = 'root'
         # if interface is lo, we know the ip is 127.0.0.1.
         # This saves an ifconfig command per node
         if self.name == 'lo':
@@ -216,6 +217,13 @@ class Intf( object ):
 
     def __str__( self ):
         return self.name
+
+    def tc( self, cmd, tc='tc' ):
+        "Execute tc command for our interface"
+        c = cmd % (tc, self)  # Add in tc command and our name
+        debug(" *** executing command: %s\n" % c)
+        info(" *** executing command: %s\n" % c)
+        return self.cmd( c )
 
 
 class TCIntf( Intf ):
@@ -469,6 +477,7 @@ class Link( object ):
 
         # All we are is dust in the wind, and our two interfaces
         self.intf1, self.intf2 = intf1, intf2
+	self.node1, self.node2 = node1, node2
     # pylint: enable=too-many-branches
 
     @staticmethod
@@ -516,7 +525,29 @@ class Link( object ):
 
     def __str__( self ):
         return '%s<->%s' % ( self.intf1, self.intf2 )
-
+   
+    def update( self ):
+	cmds1 = []
+	cmds2 = []
+	if(Pos.is_visible(self.node1.pos._coord,self.node2.pos._coord)):
+	   delay = distance(self.node1.pos._coord,self.node2.pos._coord)/300
+	   cmds1 += ['%s qdisc replace dev %s ' + self.intf1.dParent +
+                         ' handle 10: netem delay ' + str(delay)
+                         + 'ms']
+           tcoutputs1 = [self.intf1.tc(cmd) for cmd in cmds1]
+	   for output1 in tcoutputs1:
+              if output1 != '':
+                  error( "*** Error: %s" % output1 )
+	   cmds2 += ['%s qdisc replace dev %s ' + self.intf2.dParent +
+                         ' handle 10: netem delay ' + str(delay)
+                         + 'ms']
+           tcoutputs2 = [self.intf2.tc(cmd) for cmd in cmds2]
+	   for output2 in tcoutputs2:
+              if output2 != '':
+                  error( "*** Error: %s" % output2 )
+	else:
+	   info("deleting")
+	   self.delete();
 
 class OVSIntf( Intf ):
     "Patch interface on an OVSSwitch"

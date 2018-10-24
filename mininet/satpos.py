@@ -21,8 +21,8 @@ def spherical_to_cartesian( coord ):
     return carte
 
 def distance( coord1, coord2 ):
-    carte1 = spherical_to_cartesian( coord1 )
-    carte2 = spherical_to_cartesian( coord2 )
+    cart1 = spherical_to_cartesian( coord1 )
+    cart2 = spherical_to_cartesian( coord2 )
     return math.sqrt( (cart1['x']-cart2['x'])**2 + (cart1['y']-cart2['y'])**2 + (cart1['z']-cart2['z'])**2)
 
 
@@ -32,21 +32,22 @@ class Pos( object ):
     _earthRadius = 6378
     _atmosMargin = 150
 
-    def get_altitude( coord ):
+    def get_altitude( self, coord ):
         return coord.r - _earthRadius
 
-    def get_latitude( coord ):
+    def get_latitude( self, coord ):
         return (math.pi/2 - coord.theta)
     
-    def get_longitude( coord ):
+    def get_longitude( self, coord ):
         return (math.pi/2 - coord.theta)
-    
+    @staticmethod
     def is_visible( coord1, coord2 ):
         dist = distance( coord1, coord2 )
         d = (dist/2)**2
         radius = coord1.r
-        grazing_radius = (_earthRadius + _atmosMargin)
-        min_radius = math.sqrt(c-d)
+        grazing_radius = (Pos._earthRadius + Pos._atmosMargin)
+	c = coord1.r**2
+	min_radius = math.sqrt(c-d)
         if min_radius >= grazing_radius:
             return True
         return False

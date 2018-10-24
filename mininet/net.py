@@ -495,9 +495,7 @@ class Mininet( object ):
             if host.isSat():
                 host.pos.update( self.time_counter )
         for link in self.links:
-            pass
-            '''
-            link.update()'''
+            link.update()
         
         self.time_counter+=1
         self.timer = threading.Timer(1, self.updateSatLink)
