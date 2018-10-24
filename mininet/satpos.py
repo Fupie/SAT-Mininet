@@ -14,6 +14,7 @@ class coordinate( object ):
 
 
 def spherical_to_cartesian( coord ):
+    carte = {}
     carte['x'] = coord.r * math.sin(coord.theta) * math.cos(coord.phi)
     carte['y'] = coord.r * math.sin(coord.theta) * math.sin(coord.phi)
     carte['z'] = coord.r * math.cos(coord.theta)
